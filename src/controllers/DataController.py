@@ -17,7 +17,7 @@ class DataController(BaseController):
             return False, RespunseSignal.FILE_SIZE_TOO_EXCEEDED
         return True, RespunseSignal.FILE_UPLOADED_SUCCESSFULLY
 
-    def generate_unique_file_name(self, orig_file_name, project_id) -> str:
+    def generate_unique_filepath(self, orig_file_name, project_id) -> tuple[str, str]:
         random_key= self.generate_random_string()
         project_path= ProjectController().get_project_path(project_id=project_id)
         clean_file_name = self.get_clean_file_name(orig_file_name)
@@ -28,7 +28,7 @@ class DataController(BaseController):
             random_key = self.generate_random_string()
             new_file_path = os.path.join(project_path,
                                          f'{random_key}_{clean_file_name}')
-        return new_file_path
+        return new_file_path, f'{random_key}_{clean_file_name}'
 
     def get_clean_file_name(self, orig_file_name) -> str:
         clean_file_name= re.sub(r'[^\w.]', '_', orig_file_name.strip())

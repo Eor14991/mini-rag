@@ -37,8 +37,13 @@ class ProcessController(BaseController):
         self.project_path = self.project_controller.get_project_path(self.project_id)
 
     def get_file_loader(self, file_id: str) -> BaseLoader:
+
         file_extension = os.path.splitext(file_id)[-1]
         file_path = os.path.join(self.project_path, file_id)
+
+        if not os.path.exists(file_path):
+            return None
+
         return DocumentLoaderFactory.create(file_extension, file_path)
 
     def get_content(self, file_id: str) -> list[Document]:

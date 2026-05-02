@@ -1,1 +1,1 @@
-from .data import ProcessRequest
+from .data import ProcessRequest,ProcessFileRequest

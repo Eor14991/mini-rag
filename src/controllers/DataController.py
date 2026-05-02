@@ -2,7 +2,7 @@ import os
 import re
 
 from fastapi import UploadFile
-from models import RespunseSignal
+from models import ResponseSignal
 
 from .BaseController import BaseController
 from .ProjectController import ProjectController
@@ -15,10 +15,10 @@ class DataController(BaseController):
 
     def val_uploaded_file(self, file: UploadFile):
         if file.content_type not in self.app_settings.FILE_ALLOWED_TYPES:
-            return False, RespunseSignal.FILE_TYPE_NOT_ALLOWED
+            return False, ResponseSignal.FILE_TYPE_NOT_ALLOWED
         if file.size > (self.app_settings.FILE_MAX_SIZE * self.file_scale):
-            return False, RespunseSignal.FILE_SIZE_EXCEEDED
-        return True, RespunseSignal.FILE_UPLOAD_SUCCESSFUL
+            return False, ResponseSignal.FILE_SIZE_EXCEEDED
+        return True, ResponseSignal.FILE_UPLOAD_SUCCESSFUL
 
     def generate_unique_filepath(self, orig_file_name, project_id) -> tuple[str, str]:
         random_key = self.generate_random_string()

@@ -43,7 +43,7 @@ class ChunkModel(BaseDataModel):
 
         return DataChunk(**result)
 
-    async def inset_chunk_bulk(self, chunks: list, batch_size: int = 100):
+    async def insert_chunk_bulk(self, chunks: list, batch_size: int = 100):
 
         for i in range(0, len(chunks), batch_size):
             operations = [

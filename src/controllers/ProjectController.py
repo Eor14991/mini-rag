@@ -1,6 +1,6 @@
 import os
 
-from models import ResponseSignal
+from ..models import ResponseSignal
 
 from .BaseController import BaseController
 

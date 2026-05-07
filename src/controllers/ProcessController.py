@@ -6,7 +6,7 @@ from langchain_core.document_loaders.base import BaseLoader
 from langchain_core.documents import Document
 from langchain_docling.loader import DoclingLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
-from models import ProcessingEnums
+from ..models import ProcessingEnums
 
 from .BaseController import BaseController
 from .ProjectController import ProjectController
@@ -34,16 +34,18 @@ class ProcessController(BaseController):
         super().__init__()
         self.project_id = project_id
         self.project_controller = ProjectController()
-        self.project_path = self.project_controller.get_project_path(self.project_id)
+        self.project_path = self.project_controller.get_project_path(project_id=self.project_id)
+
+    def get_file_extension(self, file_id: str):
+        return os.path.splitext(file_id)[-1]
 
     def get_file_loader(self, file_id: str) -> BaseLoader:
 
-        file_extension = os.path.splitext(file_id)[-1]
+        file_extension = self.get_file_extension(file_id)
         file_path = os.path.join(self.project_path, file_id)
 
         if not os.path.exists(file_path):
             return None
-
         return DocumentLoaderFactory.create(file_extension, file_path)
 
     def get_content(self, file_id: str) -> list[Document]:

@@ -5,11 +5,11 @@ import aiofiles
 from fastapi import APIRouter, Depends, UploadFile, status, Request
 from fastapi.responses import JSONResponse
 
-from controllers import DataController, ProjectController, ProcessController
-from helpers import get_settings, Settings
-from models import ProjectModel, ChunkModel, AssetModel
-from models.db_schemas import DataChunk, Asset
-from models.enums import AssetTypeEnum, ResponseSignal
+from ..controllers import DataController, ProjectController, ProcessController
+from ..helpers import get_settings, Settings
+from ..models import ProjectModel, ChunkModel, AssetModel
+from ..models.db_schemas import DataChunk, Asset
+from ..models.enums import AssetTypeEnum, ResponseSignal
 from .schemas import ProcessRequest, ProcessFileRequest
 
 logger = logging.getLogger("uvicorn.error")
@@ -50,7 +50,8 @@ async def _process_file_core(request: Request,chunk_asset_id : object, project_i
 @data_router.post("/upload/{project_id}")
 async def upload_data(request: Request, project_id: str, file: UploadFile,
                       app_settings: Settings = Depends(get_settings)):
-    project_model = await ProjectModel.create_instance(request.app.mongo_db)
+
+    project_model = await ProjectModel.create_instance(db_client=request.app.mongo_db)
     project = await project_model.get_project_or_create_project(project_id=project_id)
 
     data_controller = DataController()
@@ -63,7 +64,15 @@ async def upload_data(request: Request, project_id: str, file: UploadFile,
         )
 
     await file.seek(0)
+    project_dir_path = ProjectController().get_project_path(project_id=project_id)
     file_path, file_id = data_controller.generate_unique_filepath(orig_file_name=file.filename, project_id=project_id)
+
+    # ADD THIS: Check what directory the ProjectController thinks this should be in
+    project_controller = ProjectController()
+    expected_process_path = os.path.join(project_controller.get_project_path(project_id), file_id)
+
+    print(f"UPLOAD PATH:  {file_path}")
+    print(f"PROCESS PATH: {expected_process_path}")
 
     try:
         async with aiofiles.open(file_path, mode='wb') as f:
@@ -85,6 +94,11 @@ async def upload_data(request: Request, project_id: str, file: UploadFile,
     )
 
     asset_record = await asset_model.create_asset(asset_resources)
+    if not asset_record:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={'signal': ResponseSignal.FILE_UPLOAD_FAILED.value},
+        )
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
         content={
@@ -116,7 +130,7 @@ async def process_single_file(request: Request, project_id: str, process_file_re
 
     if process_file_request.do_reset == 1:
         # Require a method to delete chunks by asset ID, NOT project ID
-        await chunk_model.delete_chunk_by_asset_id(asset_id=asset_record.id)
+        await chunk_model.delete_chunk_by_project_id(project_id=project.id)
         process_file_request.do_reset = 0
 
     num_records = await _process_file_core(

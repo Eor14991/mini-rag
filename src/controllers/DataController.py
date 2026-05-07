@@ -2,7 +2,7 @@ import os
 import re
 
 from fastapi import UploadFile
-from models import ResponseSignal
+from ..models import ResponseSignal
 
 from .BaseController import BaseController
 from .ProjectController import ProjectController

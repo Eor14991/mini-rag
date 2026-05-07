@@ -33,7 +33,7 @@ class ProjectModel(BaseDataModel):
 
     async def create_project(self, project: Project):
         result = await self.collection.insert_one(project.model_dump(by_alias=True,  exclude_unset=True))
-        project._id = result.inserted_id
+        project.id = result.inserted_id
         return project
 
     async def get_project_or_create_project(self, project_id: str):
@@ -49,7 +49,7 @@ class ProjectModel(BaseDataModel):
         total_documents = await self.collection.count_documents({})
         total_pages = math.ceil(total_documents / page_size)
 
-        cursor = await self.collection.find().skip((page - 1) * page_size).limit(page_size)
+        cursor =  self.collection.find().skip((page - 1) * page_size).limit(page_size)
 
         documents = await cursor.to_list(length=page_size)
         projects = [Project(**doc) for doc in documents]

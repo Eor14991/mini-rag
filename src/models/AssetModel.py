@@ -36,20 +36,20 @@ class AssetModel(BaseDataModel):  # Standardized to PascalCase
         asset.id = result.inserted_id
         return asset
 
-    async def get_asset_or_create_asset(self, asset: Asset):
+    async def get_asset(self, asset_project_id: ObjectId, asset_name: str):
         record = await self.collection.find_one({
-            "asset_project_id": asset.asset_project_id,
-            "asset_name": asset.asset_name
+            "asset_project_id": asset_project_id,
+            "asset_name": asset_name
         })
-
         if record is None:
-            return await self.create_asset(asset)
+            return None
 
         return Asset(**record)
 
-    async def get_all_project_assets(self, asset_project_id: str) -> list[Asset]:
+    async def get_all_project_assets(self, asset_project_id: ObjectId, asset_type: str = "file") -> list[Asset]:
         cursor = self.collection.find({
-            "asset_project_id": ObjectId(asset_project_id)
+            "asset_project_id": asset_project_id,
+            "asset_type": asset_type
         })
         documents = await cursor.to_list(length=None)
         return [Asset(**doc) for doc in documents]
